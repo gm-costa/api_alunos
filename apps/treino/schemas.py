@@ -7,3 +7,6 @@ class AlunoSchema(ModelSchema):
         model = Aluno
         fields = ['nome', 'email', 'data_nascimento', 'faixa']
 
+class AulaRealizadaSchema(Schema):
+    qtd: Optional[int] = 1
+    email_aluno: str
