@@ -1,3 +1,4 @@
+from typing import List
 from ninja import Router
 from ninja.errors import HttpError
 from .schemas import AlunoSchema
@@ -24,3 +25,8 @@ def criar_aluno(request, aluno_schema: AlunoSchema):
         return 200, 'Aluno cadastrado com sucesso.'
     except Exception as e:
         raise HttpError(400, f'Erro: {e}.')
+
+@treino_router.get('alunos/', response=List[AlunoSchema])
+def listar_alunos(request):
+    alunos = Aluno.objects.all()
+    return alunos
