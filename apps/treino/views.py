@@ -3,8 +3,9 @@ from typing import List
 from django.shortcuts import get_object_or_404
 from ninja import Router
 from ninja.errors import HttpError
-from .schemas import AlunoSchema, AulaRealizadaSchema
+from .schemas import AlunoSchema, AulaRealizadaSchema, ProgressoAlunoSchema
 from .models import Aluno, AulasConcluidas
+from .graduacao import order_faixas, calcular_qtd_aulas_evoluir_de_faixa
 
 
 treino_router = Router()
@@ -73,3 +74,27 @@ def aula_realizada(request, aula_realizada: AulaRealizadaSchema):
     AulasConcluidas.objects.bulk_create(aulas)
 
     return 200, f'Aula(s) marcada(s) como realizada para o aluno {aluno.nome.title()}.'
+
+@treino_router.get('progresso-aluno/', response={200: ProgressoAlunoSchema})
+def progresso_aluno(request, email_aluno: str):
+
+    aluno = Aluno.objects.get(email=email_aluno)
+    
+    faixa_atual = aluno.get_faixa_display()
+    
+    nivel_faixa = order_faixas.get(faixa_atual, 0)
+  
+    total_aulas_proxima_faixa = calcular_qtd_aulas_evoluir_de_faixa(nivel_faixa)
+
+    total_aulas_concluidas_faixa = AulasConcluidas.objects.filter(aluno=aluno, faixa_atual=aluno.faixa).count()
+
+    aulas_faltantes = max(total_aulas_proxima_faixa - total_aulas_concluidas_faixa, 0)
+
+    return {
+        'email': aluno.email,
+        'nome': aluno.nome.title(),
+        'faixa': aluno.faixa,
+        'total_aulas_proxima_faixa': total_aulas_proxima_faixa,
+        'total_aulas_concluidas_faixa_atual': total_aulas_concluidas_faixa,
+        'total_aulas_faltantes_proxima_faixa': aulas_faltantes,
+    }
