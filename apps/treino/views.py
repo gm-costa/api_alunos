@@ -25,7 +25,7 @@ def criar_aluno(request, aluno_schema: AlunoSchema):
     
     try:
         aluno.save()
-        return 200, 'Aluno cadastrado com sucesso.'
+        return 200, f'O aluno {aluno.nome} foi cadastrado com sucesso.'
     except Exception as e:
         raise HttpError(400, f'Erro: {e}.')
 
