@@ -3,7 +3,7 @@ from typing import List
 from django.shortcuts import get_object_or_404
 from ninja import Router
 from ninja.errors import HttpError
-from .schemas import AlunoSchema, AulaRealizadaSchema, ProgressoAlunoSchema
+from .schemas import AlunoSchema, AulaRealizadaSchema, ProgressoAlunoSchema, UpdateAlunoSchema
 from .models import Aluno, AulasConcluidas
 from .graduacao import order_faixas, calcular_qtd_aulas_evoluir_de_faixa
 
@@ -30,8 +30,11 @@ def criar_aluno(request, aluno_schema: AlunoSchema):
         raise HttpError(400, f'Erro: {e}.')
 
 @treino_router.get('alunos/', response=List[AlunoSchema])
-def listar_alunos(request):
+def listar_alunos(request, nome: str = '*'):
     alunos = Aluno.objects.all()
+    if nome != '*':
+        alunos = alunos.filter(nome__startswith=nome)
+    
     return alunos
 
 @treino_router.put("alunos/{aluno_id}/", response={200: str})
