@@ -37,17 +37,21 @@ def listar_alunos(request, nome: str = '*'):
     
     return alunos
 
-@treino_router.put("alunos/{aluno_id}/", response={200: str})
+@treino_router.put("alunos/{aluno_id}", response={200: str, 400:str})
 def update_aluno(request, aluno_id: int, aluno_data: AlunoSchema):
 
     aluno = get_object_or_404(Aluno, id=aluno_id)
     
-    idade = date.today() - aluno.data_nascimento
+    idade = date.today() - aluno_data.data_nascimento
 
     if int(idade.days/365) < 18 and aluno_data.dict()['faixa'] in ('A', 'R', 'M', 'P'):
-        raise HttpError(400, f'Menor de 18 anos não pode ser graduado para a faixa informada.')
+        return 400, f'Menor de 18 anos não pode ser graduado para a faixa informada.'
 
     for key, value in aluno_data.dict().items():
+        if key == 'nome':
+            value=value.title()
+        if key == 'email':
+            value=value.lower()
         if value:
             setattr(aluno, key, value)
 
@@ -55,7 +59,7 @@ def update_aluno(request, aluno_id: int, aluno_data: AlunoSchema):
         aluno.save()
         return 200, 'Atualização realizada com sucesso.'
     except Exception as e:
-        HttpError(400, f'Erro: {e}.')
+        return 400, f'Erro: {e}.'
 
 @treino_router.post('aula-realizada/', response={200: str})
 def aula_realizada(request, aula_realizada: AulaRealizadaSchema):
