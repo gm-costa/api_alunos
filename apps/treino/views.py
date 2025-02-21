@@ -97,11 +97,17 @@ def progresso_aluno(request, email_aluno: str):
 
     aulas_faltantes = max(total_aulas_proxima_faixa - total_aulas_concluidas_faixa, 0)
 
-    return {
-        'email': aluno.email,
-        'nome': aluno.nome.title(),
-        'faixa': aluno.faixa,
-        'total_aulas_proxima_faixa': total_aulas_proxima_faixa,
-        'total_aulas_concluidas_faixa_atual': total_aulas_concluidas_faixa,
-        'total_aulas_faltantes_proxima_faixa': aulas_faltantes,
-    }
+@treino_router.get('alunos/busca/', response={200: UpdateAlunoSchema, 400: str})
+def busca_aluno(request, email_aluno: str):
+    if not email_aluno:
+        return 400, 'E-mail não informado !'
+    
+    try:
+        aluno = Aluno.objects.get(email=email_aluno)
+        
+        return 200, aluno
+
+    except Aluno.DoesNotExist:
+        return 400, f'Não existe aluno com o e-mail {email_aluno} !'
+    except Exception as ex:
+        return 400, f'Erro: {ex}.'
